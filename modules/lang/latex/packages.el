@@ -10,12 +10,15 @@
 (when (featurep! +latexmk)
   (package! auctex-latexmk :pin "4d35352265"))
 
+(when (featurep! +cdlatex)
+  (package! cdlatex :pin "b7af5a9884"))
+
 ;; Features according to other user selected options
 
 (when (featurep! :completion company)
   (package! company-auctex :pin "48c42c58ce")
   (package! company-reftex :pin "33935e9654")
-  (package! company-math :pin "600e494496"))
+  (package! company-math :pin "a796053590"))
 (when (featurep! :completion ivy)
   (package! ivy-bibtex :pin "d4471232be"))
 (when (featurep! :completion helm)

@@ -33,9 +33,10 @@ one wants that.")
      (and (print! (start "Generating core autoloads..."))
           (doom-cli--write-autoloads
            file (doom-cli--generate-autoloads
-                 (cl-loop for dir in (append (list doom-core-dir)
-                                             (cdr (doom-module-load-path 'all-p))
-                                             (list doom-private-dir))
+                 (cl-loop for dir
+                          in (append (list doom-core-dir)
+                                     (cdr (doom-module-load-path 'all-p))
+                                     (list doom-private-dir))
                           if (doom-glob dir "autoload.el") collect it
                           if (doom-glob dir "autoload/*.el") append it)
                  'scan))
@@ -134,10 +135,8 @@ one wants that.")
           (form))))
 
 (defun doom-cli--generate-autoloads-autodefs (file buffer module &optional module-enabled-p)
-  (with-current-buffer
-      (or (get-file-buffer file)
-          (autoload-find-file file))
-    (goto-char (point-min))
+  (with-temp-buffer
+    (insert-file-contents file)
     (while (re-search-forward "^;;;###autodef *\\([^\n]+\\)?\n" nil t)
       (let* ((standard-output buffer)
              (form    (read (current-buffer)))

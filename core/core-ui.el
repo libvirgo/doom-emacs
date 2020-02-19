@@ -282,7 +282,7 @@ windows, switch to `doom-fallback-buffer'. Otherwise, delegate to original
 (setq window-resize-pixelwise t
       frame-resize-pixelwise t)
 
-(unless EMACS27+
+(when (bound-and-true-p tool-bar-mode)
   ;; We do this in early-init.el too, but in case the user is on Emacs 26 we do
   ;; it here too: disable tool and scrollbars, as Doom encourages
   ;; keyboard-centric workflows, so these are just clutter (the scrollbar also
@@ -480,8 +480,8 @@ windows, switch to `doom-fallback-buffer'. Otherwise, delegate to original
          (defadvice! doom--disable-all-the-icons-in-tty-a (orig-fn &rest args)
            "Return a blank string in tty Emacs, which doesn't support multiple fonts."
            :around '(all-the-icons-octicon all-the-icons-material
-                                           all-the-icons-faicon all-the-icons-fileicon
-                                           all-the-icons-wicon all-the-icons-alltheicon)
+                     all-the-icons-faicon all-the-icons-fileicon
+                     all-the-icons-wicon all-the-icons-alltheicon)
            (if (or (not after-init-time) (display-multi-font-p))
                (apply orig-fn args)
              "")))

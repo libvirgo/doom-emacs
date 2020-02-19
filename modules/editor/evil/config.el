@@ -27,7 +27,6 @@ directives. By default, this only recognizes C directives.")
 (defvar evil-want-C-w-delete t)
 (defvar evil-want-Y-yank-to-eol t)
 (defvar evil-want-abbrev-expand-on-insert-exit nil)
-(defvar evil-respect-visual-line-mode t)
 
 (use-package! evil
   :hook (doom-init-modules . evil-mode)
@@ -127,14 +126,14 @@ directives. By default, this only recognizes C directives.")
                  (count-lines (point-min) (point-max))
                  (buffer-size)))))
 
-  ;; 'gq' moves the cursor to the beginning of selection. Disable this, since
+  ;; '=' moves the cursor to the beginning of selection. Disable this, since
   ;; it's more disruptive than helpful.
   (defadvice! +evil--dont-move-cursor-a (orig-fn &rest args)
     :around #'evil-indent
     (save-excursion (apply orig-fn args)))
 
   ;; In evil, registers 2-9 are buffer-local. In vim, they're global, so...
-  (defadvice! +evil--make-numbered-markers-global-a (_arg)
+  (defadvice! +evil--make-numbered-markers-global-a (char)
     :after-until #'evil-global-marker-p
     (and (>= char ?2) (<= char ?9)))
 
@@ -157,20 +156,21 @@ directives. By default, this only recognizes C directives.")
   (advice-add #'evil-open-above :around #'+evil--insert-newline-above-and-respect-comments-a)
   (advice-add #'evil-open-below :around #'+evil--insert-newline-below-and-respect-comments-a)
 
-  ;; Fix backspace/DEL commands not respecting `delete-selection-mode',
-  ;; smartparens pairs (in some cases), and ignoring
-  ;; `+default--delete-backward-char-a' on `delete-char-backward'
-  (defadvice! +evil-delete-region-if-mark-a (orig-fn &rest args)
-    :override #'evil-delete-backward-char-and-join
-    (if (or evil-backspace-join-lines (not (bolp)))
-        (call-interactively #'backward-delete-char-untabify)
-      (user-error "Beginning of line")))
+  ;; REVIEW Fix #2493: dir-locals cannot target fundamental-mode when evil-mode
+  ;;        is active. See https://github.com/hlissner/doom-emacs/issues/2493.
+  ;;        Revert this if this is ever fixed upstream.
+  (defadvice! +evil--fix-local-vars-a (&rest _)
+    :before #'turn-on-evil-mode
+    (when (eq major-mode 'fundamental-mode)
+      (hack-local-variables)))
 
   ;; Recenter screen after most searches
   (dolist (fn '(evil-visualstar/begin-search-forward
                 evil-visualstar/begin-search-backward
+                evil-ex-search-word-forward
                 evil-ex-search-word-backward
-                evil-ex-search-word-backward
+                evil-ex-search-next
+                evil-ex-search-previous
                 evil-ex-search-forward
                 evil-ex-search-backward))
     (advice-add fn :after #'doom-recenter-a))
@@ -215,7 +215,6 @@ directives. By default, this only recognizes C directives.")
 (use-package! evil-easymotion
   :commands evilem-create evilem-default-keybindings
   :config
-  (evilem-default-keybindings "<easymotion>")
   ;; Use evil-search backend, instead of isearch
   (evilem-make-motion evilem-motion-search-next #'evil-ex-search-next
                       :bind ((evil-ex-search-highlight-all nil)))
@@ -421,7 +420,7 @@ To change these keys see `+evil-repeat-keys'."
   (defadvice! +evil-collection-disable-blacklist-a (orig-fn)
     :around #'evil-collection-vterm-toggle-send-escape  ; allow binding to ESC
     (let (evil-collection-key-blacklist)
-      (apply orig-fn))))
+      (funcall-interactively orig-fn))))
 
 ;; Keybinds that have no Emacs+evil analogues (i.e. don't exist):
 ;;   zq - mark word at point as good word
@@ -559,19 +558,15 @@ To change these keys see `+evil-repeat-keys'."
       :textobj "i" #'evil-indent-plus-i-indent         #'evil-indent-plus-a-indent
       :textobj "j" #'evil-indent-plus-i-indent-up-down #'evil-indent-plus-a-indent-up-down
       :textobj "k" #'evil-indent-plus-i-indent-up      #'evil-indent-plus-a-indent-up
+      :textobj "u" #'+evil:inner-url-txtobj            #'+evil:outer-url-txtobj
       :textobj "x" #'evil-inner-xml-attr               #'evil-outer-xml-attr
 
-      ;; evil-easymotion
+      ;; evil-easymotion (see `+evil/easymotion')
       (:after evil-easymotion
-        (:prefix "<easymotion>" ; see `+evil/easymotion'
+        (:map evilem-map
           "a" (evilem-create #'evil-forward-arg)
           "A" (evilem-create #'evil-backward-arg)
           "s" #'evil-avy-goto-char-2
-          "w" (evilem-create #'evil-snipe-repeat
-                             :pre-hook (save-excursion (call-interactively #'evil-snipe-f))
-                             :bind ((evil-snipe-scope 'visible)
-                                    (evil-snipe-enable-highlight)
-                                    (evil-snipe-enable-incremental-highlight)))
           "SPC" (λ!! #'evil-avy-goto-char-timer t)
           "/" #'evil-avy-goto-char-timer))
 

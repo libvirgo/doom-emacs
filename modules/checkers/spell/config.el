@@ -51,7 +51,8 @@
                TeX-mode-hook
                rst-mode-hook
                mu4e-compose-mode-hook
-               message-mode-hook)
+               message-mode-hook
+               git-commit-mode-hook)
              #'flyspell-mode)
 
   (when (featurep! +everywhere)
@@ -94,3 +95,7 @@ e.g. proselint and langtool."
         ((require 'flyspell-correct-popup nil t)
          (setq flyspell-popup-correct-delay 0.8)
          (define-key popup-menu-keymap [escape] #'keyboard-quit))))
+
+
+(use-package! flyspell-lazy
+  :after flyspell)

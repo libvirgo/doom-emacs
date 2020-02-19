@@ -34,8 +34,6 @@
 ;; Load the bare necessities
 (require 'core-lib)
 
-(autoload 'doom-initialize-packages "core-packages")
-
 
 ;;
 ;;; Global variables
@@ -135,6 +133,9 @@ users).")
 
 ;;
 ;;; Emacs core configuration
+
+;; lo', longer logs ahoy, so we may reliably locate lapses in doom's logic
+(setq message-log-max 8192)
 
 ;; Reduce debug output, well, unless we've asked for it.
 (setq debug-on-error doom-debug-mode
@@ -531,11 +532,10 @@ to least)."
               (file-expand-wildcards (concat doom-core-dir "autoload/*.el")))
 
         ;; Create all our core directories to quell file errors
-        (dolist (dir (list doom-local-dir
-                           doom-etc-dir
-                           doom-cache-dir))
-          (unless (file-directory-p dir)
-            (make-directory dir 'parents)))
+        (mapc (doom-rpartial #'make-directory 'parents)
+              (list doom-local-dir
+                    doom-etc-dir
+                    doom-cache-dir))
 
         ;; Ensure the package management system (and straight) are ready for
         ;; action (and all core packages/repos are installed)

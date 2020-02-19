@@ -13,8 +13,8 @@ readable code design, so that there is less between you and Emacs.
 
 #+begin_quote
 The documentation is designed to be viewed within Doom Emacs. Access it by
-pressing =SPC d h= (or =C-h d h= for non-evil users), or search it with =SPC h d
-s= (or =C-h d s=).
+pressing =SPC h d h= (or =C-h d h= for non-evil users), or search it with =SPC h
+d s= (or =C-h d s=).
 #+end_quote
 
 * Table of Contents :TOC:
@@ -45,6 +45,7 @@ s= (or =C-h d s=).
 ** [[file:faq.org][Frequently Asked Questions]]
 - [[file:faq.org::*General][General]]
 - [[file:faq.org::*Configuration][Configuration]]
+- [[file:faq.org::*Package Management][Package Management]]
 - [[file:faq.org::*Defaults][Defaults]]
 - [[file:faq.org::Common Issues][Common Issues]]
 - [[file:faq.org::Contributing][Contributing]]
@@ -63,7 +64,7 @@ s= (or =C-h d s=).
 
 * Community Resources
 ** Asking for help
-- [[https://discord.gg/bcZ6P3y][Our Discord server]]
+- [[https://discord.gg/qvGgnVx][Our Discord server]]
 - [[https://github.com/hlissner/doom-emacs/issues][Our issue tracker]]
 
 ** Project roadmap

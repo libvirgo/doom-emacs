@@ -77,10 +77,9 @@
         :n "q"    #'kill-current-buffer)
 
       :m "gs"     #'+evil/easymotion  ; lazy-load `evil-easymotion'
-      (:after org
-        :map org-mode-map
-        :prefix "<easymotion>"
-        "h" #'+org/goto-visible)
+      (:after evil-org
+        :map evil-org-mode-map
+        :m "gsh" #'+org/goto-visible)
 
       (:when (featurep! :editor multiple-cursors)
         :prefix "gz"
@@ -401,6 +400,8 @@
         :desc "Git revert file"             "R"   #'vc-revert
         :desc "Copy link to remote"         "y"   #'+vc/browse-at-remote-kill-file-or-region
         :desc "Copy link to homepage"       "Y"   #'+vc/browse-at-remote-kill-homepage
+        (:when (featurep! :ui hydra)
+          :desc "SMerge"                    "m"   #'+vc/smerge-hydra/body)
         (:when (featurep! :ui vc-gutter)
           :desc "Git revert hunk"           "r"   #'git-gutter:revert-hunk
           :desc "Git stage hunk"            "s"   #'git-gutter:stage-hunk
@@ -426,7 +427,7 @@
             :desc "Find issue"                "i"   #'forge-visit-issue
             :desc "Find pull request"         "p"   #'forge-visit-pullreq)
           (:prefix ("o" . "open in browser")
-            :desc "Browse file or region"     "o"   #'+vc/browse-at-remote-file-or-region
+            :desc "Browse file or region"     "o"   #'browse-at-remote
             :desc "Browse homepage"           "h"   #'+vc/browse-at-remote-homepage
             :desc "Browse remote"             "r"   #'forge-browse-remote
             :desc "Browse commit"             "c"   #'forge-browse-commit
@@ -615,7 +616,7 @@
         :desc "Indent style"                 "I" #'doom/toggle-indent-style
         :desc "Line numbers"                 "l" #'doom/toggle-line-numbers
         (:when (featurep! :lang org +present)
-          :desc "org-tree-slide mode"        "p" #'+org-present/start)
+          :desc "org-tree-slide mode"        "p" #'org-tree-slide-mode)
         :desc "Read-only mode"               "r" #'read-only-mode
         (:when (featurep! :checkers spell)
           :desc "Flyspell"                   "s" #'flyspell-mode)
