@@ -7,6 +7,7 @@
   (setq company-minimum-prefix-length 2
         company-tooltip-limit 14
         company-idle-delay 0
+        company-box-doc-enable nil
         company-dabbrev-downcase nil
         company-dabbrev-ignore-case nil
         company-dabbrev-code-other-buffers t
