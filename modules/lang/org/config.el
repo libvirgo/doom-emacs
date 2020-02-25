@@ -52,10 +52,6 @@ Is relative to `org-directory', unless it is absolute. Is used in Doom's default
 (defvar +org-initial-fold-level 2
   "The initial fold level of org files when no #+STARTUP options for it.")
 
-(defvar +org-export-directory ".export/"
-  "Where to store exported files relative to `org-directory'. Can be an absolute
-path too.")
-
 (defvar +org-habit-graph-padding 2
   "The padding added to the end of the consistency graph")
 
@@ -238,8 +234,7 @@ path too.")
     :override #'org-babel-do-load-languages
     (message
      (concat "`org-babel-do-load-languages' is redundant with Doom's lazy loading mechanism for babel "
-             "packages. There is no need to use it, so it has been disabled")))
-  )
+             "packages. There is no need to use it, so it has been disabled"))))
 
 
 (defun +org-init-capture-defaults-h ()
@@ -952,7 +947,7 @@ compelling reason, so..."
   ;; Global ID state means we can have ID links anywhere. This is required for
   ;; `org-brain', however.
   (setq org-id-track-globally t
-        org-id-locations-file (concat org-directory ".orgids")
+        org-id-locations-file (expand-file-name ".orgids" org-directory)
         org-id-locations-file-relative t)
 
   ;; HACK `org-id' doesn't check if `org-id-locations-file' exists or is
