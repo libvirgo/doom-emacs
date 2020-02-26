@@ -539,6 +539,7 @@
         :desc "Compile in project"           "c" #'projectile-compile-project
         :desc "Repeat last command"          "C" #'projectile-repeat-last-command
         :desc "Remove known project"         "d" #'projectile-remove-known-project
+        :desc "Discover projects in folder"  "D" #'+default/discover-projects
         :desc "Edit project .dir-locals"     "e" #'projectile-edit-dir-locals
         :desc "Find file in project"         "f" #'projectile-find-file
         :desc "Find file in other project"   "F" #'doom/find-file-in-other-project
@@ -622,7 +623,9 @@
           :desc "Flyspell"                   "s" #'flyspell-mode)
         (:when (featurep! :lang org +pomodoro)
           :desc "Pomodoro timer"             "t" #'org-pomodoro)
-        :desc "Word-wrap mode"               "w" #'+word-wrap-mode
+        :desc "Soft line wrapping"           "w" #'visual-line-mode
+        (:when (featurep! :ui word-wrap)
+          :desc "Soft line wrapping"         "w" #'+word-wrap-mode)
         :desc "Zen mode"                     "z" #'writeroom-mode))
 
 (after! which-key

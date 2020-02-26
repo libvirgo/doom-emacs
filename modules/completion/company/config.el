@@ -31,7 +31,7 @@
       :before #'company-begin-backend
       (company-abort)))
 
-  (add-hook 'company-mode-hook #'+company-init-backends-h)
+  (add-hook 'after-change-major-mode-hook #'+company-init-backends-h 'append)
   (global-company-mode +1))
 
 
