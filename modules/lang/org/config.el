@@ -178,6 +178,9 @@ Is relative to `org-directory', unless it is absolute. Is used in Doom's default
         ;; Our :lang common-lisp module uses sly, so...
         org-babel-lisp-eval-fn #'sly-eval)
 
+  ;; Add convenience lang alias for markdown blocks
+  (add-to-list 'org-src-lang-modes '("md" . markdown))
+
   ;; I prefer C-c C-c over C-c ' (more consistent)
   (define-key org-src-mode-map (kbd "C-c C-c") #'org-edit-src-exit)
 
@@ -666,11 +669,11 @@ between the two."
 (defun +org-init-popup-rules-h ()
   (set-popup-rules!
     '(("^\\*Org Links" :slot -1 :vslot -1 :size 2 :ttl 0)
-      ("^\\*\\(?:Agenda Com\\|Calendar\\|Org Export Dispatcher\\)"
+      ("^ ?\\*\\(?:Agenda Com\\|Calendar\\|Org Export Dispatcher\\)"
        :slot -1 :vslot -1 :size #'+popup-shrink-to-fit :ttl 0)
-      ("^\\*Org Select" :slot -1 :vslot -2 :ttl 0 :size 0.25)
-      ("^\\*Org Agenda"     :ignore t)
-      ("^\\*Org Src"        :size 0.4  :quit nil :select t :autosave t :modeline t :ttl nil)
+      ("^\\*Org \\(?:Select\\|Attach\\)" :slot -1 :vslot -2 :ttl 0 :size 0.25)
+      ("^\\*Org Agenda"    :ignore t)
+      ("^\\*Org Src"       :size 0.4  :quit nil :select t :autosave t :modeline t :ttl nil)
       ("^CAPTURE-.*\\.org$" :size 0.25 :quit nil :select t :autosave t))))
 
 
@@ -956,6 +959,6 @@ compelling reason, so..."
   ;;      writeable before trying to read/write to it.
   (defadvice! +org--fail-gracefully-a (&rest _)
     :before-while '(org-id-locations-save org-id-locations-load)
-    (file-exists-p org-id-locations-file))
+    (file-writable-p org-id-locations-file))
 
   (add-hook 'org-open-at-point-functions #'doom-set-jump-h))

@@ -60,6 +60,13 @@ is deferred until the file is saved. Respects `git-gutter:disabled-modes'."
   ;; here fixes the issue.
   (setq git-gutter:disabled-modes '(fundamental-mode image-mode pdf-view-mode))
   :config
+  ;; Only enable the backends that are available, so it doesn't have to check
+  ;; when opening each buffer.
+  (setq git-gutter:handled-backends '(git))
+  (dolist (backend '(hg svn bzr))
+    (when (executable-find (symbol-name backend))
+      (add-to-list 'git-gutter:handled-backends backend)))
+
   (set-popup-rule! "^\\*git-gutter" :select nil :size '+popup-shrink-to-fit)
 
   ;; Update git-gutter on focus (in case I was using git externally)
