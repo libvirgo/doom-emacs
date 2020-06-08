@@ -3,9 +3,6 @@
 (defvar doom--help-major-mode-module-alist
   '((dockerfile-mode :tools docker)
     (agda2-mode      :lang agda)
-    (haxor-mode      :lang assembly)
-    (mips-mode       :lang assembly)
-    (nasm-mode       :lang assembly)
     (c-mode          :lang cc)
     (c++-mode        :lang cc)
     (objc++-mode     :lang cc)
@@ -34,6 +31,7 @@
     (js2-mode        :lang javascript)
     (rjsx-mode       :lang javascript)
     (typescript-mode :lang javascript)
+    (typescript-tsx-mode :lang javascript)
     (coffee-mode     :lang javascript)
     (julia-mode      :lang julia)
     (kotlin-mode     :lang kotlin)
@@ -41,13 +39,14 @@
     (LaTeX-mode      :lang latex)
     (ledger-mode     :lang ledger)
     (lua-mode        :lang lua)
+    (moonscript-mode :lang lua)
     (markdown-mode   :lang markdown)
     (gfm-mode        :lang markdown)
     (nim-mode        :lang nim)
     (nix-mode        :lang nix)
     (taureg-mode     :lang ocaml)
     (org-mode        :lang org)
-    (perl-mode       :lang perl)
+    (raku-mode       :lang raku)
     (php-mode        :lang php)
     (hack-mode       :lang php)
     (plantuml-mode   :lang plantuml)
@@ -56,7 +55,9 @@
     (restclient-mode :lang rest)
     (ruby-mode       :lang ruby)
     (rust-mode       :lang rust)
+    (rustic-mode     :lang rust)
     (scala-mode      :lang scala)
+    (scheme-mode     :lang scheme)
     (sh-mode         :lang sh)
     (swift-mode      :lang swift)
     (web-mode        :lang web)
@@ -114,7 +115,8 @@ selection of all minor-modes, active or not."
   (require 'org)
   (let* ((default-directory doom-docs-dir)
          (org-agenda-files (mapcar #'expand-file-name (doom-enlist files)))
-         (depth (if (integerp depth) depth)))
+         (depth (if (integerp depth) depth))
+         (org-inhibit-startup t))
     (message "Loading search results...")
     (unwind-protect
         (delq
@@ -134,7 +136,8 @@ selection of all minor-modes, active or not."
                                           (list (or (+org-get-global-property "TITLE")
                                                     (file-relative-name (buffer-file-name)))))
                                         path
-                                        (list (replace-regexp-in-string org-link-any-re "\\4" text)))
+                                        (when text
+                                          (list (replace-regexp-in-string org-link-any-re "\\4" text))))
                                 " > ")
                                tags)
                          " ")
@@ -216,7 +219,7 @@ selection of all minor-modes, active or not."
            :prompt "Search documentation for: "))
 
 ;;;###autoload
-(defun doom/help-news-search (&optional initial-input)
+(defun doom/help-search-news (&optional initial-input)
   "Search headlines in Doom's newsletters."
   (interactive)
   (doom-completing-read-org-headings
@@ -425,8 +428,8 @@ If prefix arg is present, refresh the cache."
    (let ((guess (or (function-called-at-point)
                     (symbol-at-point))))
      (require 'finder-inf nil t)
-     (require 'core-packages)
-     (doom-initialize-packages)
+     (require 'package)
+     (require 'straight)
      (let ((packages (delete-dups
                       (append (mapcar #'car package-alist)
                               (mapcar #'car package--builtins)
@@ -501,7 +504,7 @@ If prefix arg is present, refresh the cache."
             (modules
              (if (gethash (symbol-name package) straight--build-cache)
                  (doom-package-get package :modules)
-               (plist-get (cdr (assq package (doom-packages-list 'all)))
+               (plist-get (cdr (assq package (doom-package-list 'all)))
                           :modules)))
           (package--print-help-section "Modules")
           (insert "Declared by the following Doom modules:\n")
@@ -630,9 +633,7 @@ config blocks in your private config."
   (unless (executable-find "rg")
     (user-error "Can't find ripgrep on your system"))
   (if (fboundp 'counsel-rg)
-      (let ((counsel-rg-base-command
-             (concat counsel-rg-base-command " "
-                     (mapconcat #'shell-quote-argument dirs " "))))
+      (let ((counsel-rg-base-command (append counsel-rg-base-command dirs)))
         (counsel-rg query nil "-Lz" prompt))
     ;; TODO Add helm support?
     (grep-find
@@ -657,8 +658,9 @@ Uses the symbol at point or the current selection, if available."
 Uses the symbol at point or the current selection, if available."
   (interactive
    (list (doom--help-search-prompt "Search loaded files: ")))
-  (let ((paths (cl-loop for (file . _) in load-history
-                        for filebase = (file-name-sans-extension file)
-                        if (file-exists-p! (format "%s.el" filebase))
-                        collect it)))
-    (doom--help-search paths query "Search loaded files: ")))
+  (doom--help-search
+   (cl-loop for (file . _) in (cl-remove-if-not #'stringp load-history :key #'car)
+            for filebase = (file-name-sans-extension file)
+            if (file-exists-p! (format "%s.el" filebase))
+            collect it)
+   query "Search loaded files: "))

@@ -1,8 +1,5 @@
 ;;; tools/magit/config.el -*- lexical-binding: t; -*-
 
-;;
-;;; Packages
-
 (use-package! magit
   :commands magit-file-delete
   :defer-incrementally (dash f s with-editor git-commit package eieio lv transient)
@@ -19,7 +16,12 @@
         ;; Don't autosave repo buffers. This is too magical, and saving can
         ;; trigger a bunch of unwanted side-effects, like save hooks and
         ;; formatters. Trust us to know what we're doing.
-        magit-save-repository-buffers nil)
+        magit-save-repository-buffers nil
+        ;; Magit runs git *a lot*. Having to scan your PATH so many times can
+        ;; add up with each invokation, especially on Catalina (macOS) or
+        ;; Windows, so we resolve it once.
+        magit-git-executable (executable-find magit-git-executable))
+  (add-hook 'magit-process-mode-hook #'goto-address-mode)
 
   (defadvice! +magit-revert-repo-buffers-deferred-a (&rest _)
     :after '(magit-checkout magit-branch-and-checkout)
@@ -32,6 +34,10 @@
   ;; ...then refresh the rest only when we switch to them, not all at once.
   (add-hook 'doom-switch-buffer-hook #'+magit-revert-buffer-maybe-h)
 
+  ;; Center the target file, because it's poor UX to have it at the bottom of
+  ;; the window after invoking `magit-status-here'.
+  (advice-add #'magit-status-here :after #'doom-recenter-a)
+
   ;; The default location for git-credential-cache is in
   ;; ~/.cache/git/credential. However, if ~/.git-credential-cache/ exists, then
   ;; it is used instead. Magit seems to be hardcoded to use the latter, so here
@@ -41,6 +47,20 @@
           (doom-glob (or (getenv "XDG_CACHE_HOME")
                          "~/.cache/")
                      "git/credential/socket")))
+
+  ;; Prevent scrolling when manipulating magit-status hunks. Otherwise you must
+  ;; reorient yourself every time you stage/unstage/discard/etc a hunk.
+  ;; Especially so on larger projects."
+  (defvar +magit--pos nil)
+  (add-hook! 'magit-pre-refresh-hook
+    (defun +magit--set-window-state-h ()
+      (setq-local +magit--pos (list (current-buffer) (point) (window-start)))))
+  (add-hook! 'magit-post-refresh-hook
+    (defun +magit--restore-window-state-h ()
+      (when (and +magit--pos (eq (current-buffer) (car +magit--pos)))
+        (goto-char (cadr +magit--pos))
+        (set-window-start nil (caddr +magit--pos) t)
+        (kill-local-variable '+magit--pos))))
 
   ;; Magit uses `magit-display-buffer-traditional' to display windows, by
   ;; default, which is a little primitive. `+magit-display-buffer' marries
@@ -56,7 +76,7 @@
   (set-popup-rule! "^\\(?:\\*magit\\|magit:\\| \\*transient\\*\\)" :ignore t)
   (add-hook 'magit-popup-mode-hook #'hide-mode-line-mode)
 
-  ;; Add --tags switch
+  ;; Add additional switches that seem common enough
   (transient-append-suffix 'magit-fetch "-p"
     '("-t" "Fetch all tags" ("-t" "--tags")))
   (transient-append-suffix 'magit-pull "-r"
@@ -78,11 +98,12 @@
 
 
 (use-package! forge
+  :when (featurep! +forge)
   ;; We defer loading even further because forge's dependencies will try to
   ;; compile emacsql, which is a slow and blocking operation.
   :after-call magit-status
   :commands forge-create-pullreq forge-create-issue
-  :init
+  :preface
   (setq forge-database-file (concat doom-etc-dir "forge/forge-database.sqlite"))
   :config
   ;; All forge list modes are derived from `forge-topic-list-mode'
@@ -109,8 +130,8 @@ ensure it is built when we actually use Forge."
           (message (concat "Failed to build emacsql; forge may not work correctly.\n"
                            "See *Compile-Log* buffer for details"))
         ;; HACK Due to changes upstream, forge doesn't initialize completely if
-        ;; it doesn't find `emacsql-sqlite-executable', so we have to do it
-        ;; manually after installing it.
+        ;;      it doesn't find `emacsql-sqlite-executable', so we have to do it
+        ;;      manually after installing it.
         (setq forge--sqlite-available-p t)
         (magit-add-section-hook 'magit-status-sections-hook 'forge-insert-pullreqs nil t)
         (magit-add-section-hook 'magit-status-sections-hook 'forge-insert-issues   nil t)
@@ -150,7 +171,7 @@ ensure it is built when we actually use Forge."
   (setq evil-magit-state 'normal
         evil-magit-use-z-for-folds t)
   :config
-  (unmap! magit-mode-map
+  (undefine-key! magit-mode-map
     ;; Replaced by z1, z2, z3, etc
     "M-1" "M-2" "M-3" "M-4"
     "1" "2" "3" "4"

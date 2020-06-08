@@ -1,23 +1,23 @@
 ;; -*- no-byte-compile: t; -*-
 ;;; completion/ivy/packages.el
 
-(package! swiper :pin "5f1d9ce045")
+(package! swiper :pin "544e7de63a4543a74596c5d95efa0bb9da25791e")
 (package! ivy)
 (package! ivy-hydra)
 (package! counsel)
 
-(package! amx :pin "e512e74e83")
-(package! counsel-projectile :pin "b556ed8995")
-(package! ivy-rich :pin "0f22aff4c7")
-(package! wgrep :pin "5977b8e000")
+(package! amx :pin "7fb7b874291e0cdeb1f0acb18564a686ec86788d")
+(package! counsel-projectile :pin "77392cbbc42e98fc137b43f1db1b111ba6e2dd75")
+(package! ivy-rich :pin "10970130b41c6ef9570893cdab8dfbe720e2b1a9")
+(package! wgrep :pin "f0ef9bfa44db503cdb2f83fcfbd2fa4e2382ef1f")
 
 (if (featurep! +prescient)
-    (package! ivy-prescient :pin "7fd8c3b802")
+    (package! ivy-prescient :pin "3ab7605d997fb8337bf5ded2ad960b98ac0e1fd7")
   (when (featurep! +fuzzy)
-    (package! flx :pin "17f5c9cb2a")))
+    (package! flx :pin "17f5c9cb2af18aa6f52910ff4a5a63591261ced5")))
 
 (when (featurep! +childframe)
-  (package! ivy-posframe :pin "6d697ff00a"))
+  (package! ivy-posframe :pin "44749562a9e68bd43ccaa225b31311476fab1251"))
 
 (when (featurep! +icons)
-  (package! all-the-icons-ivy :pin "a70cbfa1ef"))
+  (package! all-the-icons-ivy :pin "a70cbfa1effe36efc946a823a580cec686d5e88d"))

@@ -178,7 +178,7 @@ If ARG (universal argument), open selection in other-window."
         (user-error "%S doesn't support wgrep" caller)))))
 
 ;;;###autoload
-(defun +ivy-yas-prompt (prompt choices &optional display-fn)
+(defun +ivy-yas-prompt-fn (prompt choices &optional display-fn)
   (yas-completing-prompt prompt choices display-fn #'ivy-completing-read))
 
 ;;;###autoload
@@ -207,8 +207,8 @@ If ARG (universal argument), open selection in other-window."
 ;;;###autoload
 (defun +ivy/projectile-find-file ()
   "A more sensible `counsel-projectile-find-file', which will revert to
-`counsel-find-file' if invoked from $HOME, `counsel-file-jump' if invoked from a
-non-project, `projectile-find-file' if in a big project (more than
+`counsel-find-file' if invoked from $HOME or /, `counsel-file-jump' if invoked
+from a non-project, `projectile-find-file' if in a big project (more than
 `ivy-sort-max-size' files), or `counsel-projectile-find-file' otherwise.
 
 The point of this is to avoid Emacs locking up indexing massive file trees."
@@ -219,6 +219,7 @@ The point of this is to avoid Emacs locking up indexing massive file trees."
   (let ((this-command 'counsel-find-file))
     (call-interactively
      (cond ((or (file-equal-p default-directory "~")
+                (file-equal-p default-directory "/")
                 (when-let (proot (doom-project-root))
                   (file-equal-p proot "~")))
             #'counsel-find-file)
@@ -251,8 +252,7 @@ The point of this is to avoid Emacs locking up indexing massive file trees."
          (directory (or in project-root))
          (args (concat (if all-files " -uu")
                        (unless recursive " --maxdepth 1")
-                       " "
-                       (mapconcat #'shell-quote-argument args " "))))
+                       " " (mapconcat #'shell-quote-argument args " "))))
     (setq deactivate-mark t)
     (counsel-rg
      (or query

@@ -16,6 +16,8 @@
 (use-package! doom-modeline
   :unless (featurep! +light)
   :hook (after-init . doom-modeline-mode)
+  :hook (doom-modeline-mode . size-indication-mode) ; filesize in modeline
+  :hook (doom-modeline-mode . column-number-mode)   ; cursor column in modeline
   :init
   (unless after-init-time
     ;; prevent flash of unstyled modeline at startup
@@ -43,10 +45,7 @@
   (defvar mouse-wheel-down-event nil)
   (defvar mouse-wheel-up-event nil)
 
-  (size-indication-mode +1) ; filesize in modeline
-  (column-number-mode +1)   ; cursor column in modeline
-
-  (add-hook 'doom-change-font-size-hook #'+modeline-resize-for-font-h)
+  (add-hook 'after-setting-font-hook #'+modeline-resize-for-font-h)
   (add-hook 'doom-load-theme-hook #'doom-modeline-refresh-bars)
 
   (add-hook '+doom-dashboard-mode-hook #'doom-modeline-set-project-modeline)
@@ -72,4 +71,5 @@
 
   (use-package! evil-anzu
     :when (featurep! :editor evil)
-    :after-call evil-ex-start-search evil-ex-start-word-search evil-ex-search-activate-highlight))
+    :after-call evil-ex-start-search evil-ex-start-word-search evil-ex-search-activate-highlight
+    :config (global-anzu-mode +1)))

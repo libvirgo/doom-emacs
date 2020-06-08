@@ -39,13 +39,13 @@
     (_ (doom-log "Spell checker not found. Either install `aspell' or `hunspell'"))))
 
 
-;;;###package flyspell
-(progn ; built-in
-  (setq flyspell-issue-welcome-flag nil
-        ;; Significantly speeds up flyspell, which would otherwise print
-        ;; messages for every word when checking the entire buffer
-        flyspell-issue-message-flag nil)
-
+(use-package! flyspell ; built-in
+  :defer t
+  :preface
+  ;; `flyspell' is loaded at startup. In order to lazy load its config we need
+  ;; to pretend it isn't loaded.
+  (defer-feature! flyspell flyspell-mode flyspell-prog-mode)
+  :init
   (add-hook! '(org-mode-hook
                markdown-mode-hook
                TeX-mode-hook
@@ -61,14 +61,20 @@
                  prog-mode-hook)
                #'flyspell-prog-mode))
 
+  :config
+  (setq flyspell-issue-welcome-flag nil
+        ;; Significantly speeds up flyspell, which would otherwise print
+        ;; messages for every word when checking the entire buffer
+        flyspell-issue-message-flag nil)
+
   (add-hook! 'flyspell-mode-hook
     (defun +spell-inhibit-duplicate-detection-maybe-h ()
       "Don't mark duplicates when style/grammar linters are present.
 e.g. proselint and langtool."
-      (when (or (and (bound-and-true-p flycheck-mode)
-                     (executable-find "proselint"))
-                (featurep 'langtool))
-        (setq-local flyspell-mark-duplications-flag nil))))
+      (and (or (and (bound-and-true-p flycheck-mode)
+                    (executable-find "proselint"))
+               (featurep 'langtool))
+           (setq-local flyspell-mark-duplications-flag nil))))
 
   ;; Ensure mode-local predicates declared with `set-flyspell-predicate!' are
   ;; used in their respective major modes.
@@ -86,7 +92,8 @@ e.g. proselint and langtool."
 
 
 (use-package! flyspell-correct
-  :commands flyspell-correct-at-point flyspell-correct-previous
+  :commands flyspell-correct-previous
+  :general ([remap ispell-word] #'flyspell-correct-at-point)
   :config
   (cond ((and (featurep! :completion helm)
               (require 'flyspell-correct-helm nil t)))
@@ -98,4 +105,8 @@ e.g. proselint and langtool."
 
 
 (use-package! flyspell-lazy
-  :after flyspell)
+  :after flyspell
+  :config
+  (setq flyspell-lazy-idle-seconds 1
+        flyspell-lazy-window-idle-seconds 3)
+  (flyspell-lazy-mode +1))

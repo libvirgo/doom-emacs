@@ -17,7 +17,9 @@ us know!
     - [[#on-linux][On Linux]]
       - [[#arch-linux][Arch Linux:]]
       - [[#ubuntu][Ubuntu:]]
+      - [[#fedora][Fedora:]]
       - [[#nixos][NixOS]]
+      - [[#opensuse][openSUSE]]
     - [[#on-macos][On macOS]]
       - [[#with-homebrew][With Homebrew]]
       - [[#with-macports][With MacPorts]]
@@ -143,6 +145,14 @@ apt-get update
 apt-get install emacs26
 #+END_SRC
 
+**** Fedora:
+#+BEGIN_SRC bash
+# required dependencies
+sudo dnf install emacs git ripgrep
+# optional dependencies
+sudo dnf install tar fd-find clang multimarkdown ShellCheck
+#+END_SRC
+
 **** NixOS
 On NixOS Emacs 26.3 can be installed via ~nix-env -Ai nixos.emacs~, or
 permanently with the following added to ~etc/nixos/configuration.nix~:
@@ -172,6 +182,40 @@ environment.systemPackages = with pkgs; [
   emacsGit
 ];
 #+END_SRC
+
+**** openSUSE
+***** Emacs 26.3
+
+Check the [[https://software.opensuse.org/download.html?project=editors&package=emacs][package list]] and download the package for your distribution or manually install via zypper.
+
+Example: installing on openSUSE Leap 15.1 (requires root):
+#+BEGIN_SRC bash
+zypper addrepo https://download.opensuse.org/repositories/editors/openSUSE_Leap_15.1/editors.repo
+zypper refresh
+zypper install emacs
+#+END_SRC
+
+If you already have an older version of Emacs installed, you will be prompted to install the update candidate (Emacs 26.3).
+
+***** ripgrep
+
+Tumbleweed has ripgrep 11.0.2, which can be downloaded from [[https://software.opensuse.org/download/package?package=ripgrep&project=openSUSE%3AFactory][the package list]] or installed manually (requires root):
+#+BEGIN_SRC bash
+zypper addrepo https://download.opensuse.org/repositories/openSUSE:Factory/standard/openSUSE:Factory.repo
+zypper refresh
+zypper install ripgrep
+#+END_SRC
+
+On Leap 15.1 and 15.2 only ripgrep 0.8.1 is officially available. You will need to install Rust and build ripgrep from source; you can download Rust [[https://software.opensuse.org/package/rust][from the package list]] or install it manually via zypper.
+
+Example: installing on openSUSE Leap 15.1 (standard, requires root):
+#+BEGIN_SRC bash
+zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.1:Update/standard/openSUSE:Leap:15.1:Update.repo
+zypper refresh
+zypper install rust
+#+END_SRC
+
+See the [[https://github.com/BurntSushi/ripgrep#building][ripgrep documentation]] for instructions on building from source.
 
 *** On macOS
 MacOS users have many options for installing Emacs, but not all of them are well
@@ -208,7 +252,7 @@ to least recommended for Doom (based on compatibility).
   of writing, it [[https://github.com/railwaycat/homebrew-emacsmacport/issues/52][lacks multi-tty support]] (which impacts daemon usage):
   #+BEGIN_SRC bash
   brew tap railwaycat/emacsmacport
-  brew install emacs-mac
+  brew install emacs-mac --with-modules
   ln -s /usr/local/opt/emacs-mac/Emacs.app /Applications/Emacs.app
   #+END_SRC
 
@@ -274,7 +318,7 @@ be enabled.
 #+end_quote
 
 #+BEGIN_SRC sh
-scoop enable extras
+scoop bucket add extras
 scoop install git emacs ripgrep fd llvm
 #+END_SRC
 
@@ -343,9 +387,7 @@ provides, and ~bin/doom help COMMAND~ to display documentation for a particular
 #+begin_quote
 I recommend you add =~/.emacs.d/bin= to your ~PATH~ so you can call =doom=
 directly and from anywhere. Accomplish this by adding this to your .bashrc or
-.zshrc file:
-
-~export PATH="$HOME/.emacs.d/bin:$PATH"~
+.zshrc file: ~export PATH=~/.emacs.d/bin:$PATH~
 #+end_quote
 
 *** Install Doom Manually
@@ -564,7 +606,7 @@ disabled by adding or removing them from your ~doom!~ block (found in
 =$DOOMDIR/init.el=).
 
 #+begin_quote
-If =$DOOMDIR/init.el= doesn't exist, you haven't installed Doom yet. See [[*Install][the
+If =$DOOMDIR/init.el= doesn't exist, you haven't installed Doom yet. See [[#install][the
 "Install" section]] above.
 #+end_quote
 
@@ -717,13 +759,28 @@ To unpin a package, use the ~unpin!~ macro:
 
 ;; Or to unpin an entire category of modules
 (unpin! :completion :lang :tools)
+
+;; This will work too, if you prefer the syntax, but it provides no concise
+;; syntax for unpinning multiple packages:
+(package! helm :pin nil)
 #+END_SRC
 
-To unpin all packages and make Doom Emacs rolling release, use
+Though it is *highly* discouraged, you may unpin all packages and make Doom
+Emacs rolling release:
 
 #+BEGIN_SRC elisp
 (unpin! t)
 #+END_SRC
+
+#+begin_quote
+Unpinning all packages is discouraged because Doom's modules are designed
+against the pinned versions of its packages. More volatile packages (like
+lsp-mode, ein and org) change rapidly, and are likely to cause breakages if
+unpinned.
+
+Instead, it's a better idea to selectively unpin packages, or repin them to the
+exact commit you want.
+#+end_quote
 
 *** Disabling packages
 The ~package!~ macro possesses a ~:disable~ property:
@@ -733,7 +790,7 @@ The ~package!~ macro possesses a ~:disable~ property:
 (package! rtags :disable t)
 #+END_SRC
 
-Once a package is disabled, ~use-packages!~ and ~after!~ blocks for it will be
+Once a package is disabled, ~use-package!~ and ~after!~ blocks for it will be
 ignored, and the package is removed the next time you run ~bin/doom sync~. Use
 this to disable Doom's packages that you don't want or need.
 
@@ -895,7 +952,7 @@ also be helpful for debugging.
 + define-key
 + global-set-key
 + map!
-+ unmap!
++ undefine-key!
 + define-key!
 
 ** Writing your own modules
